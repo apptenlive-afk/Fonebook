@@ -1028,7 +1028,6 @@ class _MyContactsScreenState extends State<MyContactsScreen> {
           children: [
             AppHeader(
               title: 'Fone Book',
-              onBack: () => Navigator.pop(context),
               showMenu: true,
               api: widget.api,
               session: widget.session,

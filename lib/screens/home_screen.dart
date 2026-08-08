@@ -312,7 +312,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                       isFirstThree: i < 3,
                                       onCall: isMyContact ? null : () => widget.store.addToHistory(contact),
                                       onTap: isMyContact ? () {} : () {
-                                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailsScreen(contact: contact))).then((_) => _loadFavs());
+                                        widget.onSearchModeChanged(false);
+                                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailsScreen(contact: contact))).then((_) {
+                                          _loadFavs();
+                                          if (_isSearching) widget.onSearchModeChanged(true);
+                                        });
                                       },
                                     );
                                   },

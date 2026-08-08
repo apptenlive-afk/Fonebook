@@ -28,7 +28,7 @@ class HeaderMenu extends StatelessWidget {
       icon: Image.asset('assets/images/three_dots.png', width: 25, height: 30),
       onSelected: (v) async {
         if (v == 'Logout') {
-          SessionStore().clear().then((_) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false));
+          SessionStore().clear().then((_) => Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false));
           return;
         }
 
@@ -61,7 +61,7 @@ class HeaderMenu extends StatelessWidget {
       itemBuilder: (c) => [
         const PopupMenuItem(value: 'Profile', child: Text('Profile')),
         const PopupMenuItem(value: 'Keywords', child: Text('Keywords')),
-        const PopupMenuItem(value: 'Verification', child: Text('Verification')),
+        //const PopupMenuItem(value: 'Verification', child: Text('Verification')),
         const PopupMenuItem(value: 'Promote', child: Text('Promote')),
         const PopupMenuItem(value: 'Traffic', child: Text('Traffic')),
         const PopupMenuItem(value: 'Settings', child: Text('Settings')),

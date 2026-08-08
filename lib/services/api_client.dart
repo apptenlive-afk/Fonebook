@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-const _apiBase = kDebugMode ? 'http://10.0.2.2:8000/' : 'https://apps.plestarinc.com:3002/';
+const _apiBase = 'https://apps.plestarinc.com:3002/';
+
+//kDebugMode ? 'http://10.0.2.2:8000/' :
 
 
 class ApiClient {

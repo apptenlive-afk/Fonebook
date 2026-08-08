@@ -55,7 +55,7 @@ class SettingsScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 30),
                       child: InkWell(
                         onTap: () {
-                          SessionStore().clear().then((_) => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false));
+                          SessionStore().clear().then((_) => Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false));
                         },
                         child: Container(
                           width: double.infinity,

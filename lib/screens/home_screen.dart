@@ -30,7 +30,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _search = TextEditingController();
   final _focus = FocusNode();
-  Timer? _searchDebounce;
   bool _isSearching = false;
   bool _loading = false;
   bool _hasSearched = false;
@@ -73,18 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadData();
-    _search.addListener(_onSearchChanged);
     _focus.addListener(() {
       if (_focus.hasFocus) {
         _loadLocalContacts();
         if (!_isSearching) {
           setState(() {
             _isSearching = true;
-          });
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted && !_focus.hasFocus) {
-              _focus.requestFocus();
-            }
           });
         }
       }
@@ -93,42 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
     _search.dispose();
     _focus.dispose();
     super.dispose();
-  }
-
-  void _onSearchChanged() {
-    final q = _search.text.trim();
-    if (q.isEmpty) {
-      _searchDebounce?.cancel();
-      setState(() {
-        _results = [];
-        _hasSearched = false;
-        _loading = false;
-      });
-      return;
-    }
-
-    // Set search mode synchronously and preserve focus
-    if (!_isSearching) {
-      setState(() {
-        _isSearching = true;
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_focus.hasFocus) {
-          _focus.requestFocus();
-        }
-      });
-    }
-
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
-      if (mounted && _search.text.trim().isNotEmpty) {
-        _doSearch(_search.text.trim());
-      }
-    });
   }
 
   void _loadData() async {
@@ -384,11 +344,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final RenderBox button = btnContext.findRenderObject() as RenderBox;
     final RenderBox overlay = Navigator.of(btnContext).overlay!.context.findRenderObject() as RenderBox;
 
-    final Offset topLeft = button.localToGlobal(Offset.zero, ancestor: overlay);
-    final Offset bottomRight = button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay);
+    final Offset topBelow = button.localToGlobal(Offset(0, button.size.height + 8), ancestor: overlay);
+    final Offset bottomRight = button.localToGlobal(button.size.bottomRight(Offset(0, 8)), ancestor: overlay);
 
     final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(topLeft, bottomRight),
+      Rect.fromPoints(topBelow, bottomRight),
       Offset.zero & overlay.size,
     );
 

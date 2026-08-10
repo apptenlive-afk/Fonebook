@@ -52,47 +52,45 @@ class ContactCard extends StatelessWidget {
                  (double.tryParse(contact.priorityBalance) ?? 0) >= 0.30;
     
     final timeAgo = showTime ? _getTimeAgo(contact.timestamp) : "";
-    final subtitle = showTime && timeAgo.isNotEmpty ? "${contact.service} . $timeAgo" : contact.service;
+    final subtitle = showTime && timeAgo.isNotEmpty ? "${contact.service} • $timeAgo" : contact.service;
+    final firstLetter = contact.name.trim().isNotEmpty ? contact.name.trim()[0].toUpperCase() : '?';
 
     return InkWell(
       onTap: onTap,
       child: Container(
-        height: 100, // Balanced height
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2), // Increased vertical margin for better separation
-        padding: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isMyContact ? const Color(0xFFFFFDF0) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isMyContact 
-              ? const Color(0xFFF6D207).withOpacity(0.4)
-              : Colors.grey.withOpacity(0.2), 
-            width: 1
+              ? const Color(0xFFFFECB3)
+              : const Color(0xFFE9ECEF), 
+            width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
-        child: Stack(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Profile Image (imageView2)
-            // Centered vertically as in the native ConstraintLayout (parent top/bottom constraints)
-            Positioned(
-              left: 21,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 5),
-                  width: 50,
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+            // Profile Avatar / Image
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    color: const Color(0xFFFFF3CD),
+                    border: Border.all(color: const Color(0xFFFFECB3), width: 1),
                   ),
                   child: ClipOval(
                     child: contact.imageUrl.isNotEmpty
@@ -100,37 +98,47 @@ class ContactCard extends StatelessWidget {
                             placeholder: 'assets/images/user.png',
                             image: contact.imageUrl,
                             fit: BoxFit.cover,
-                            imageErrorBuilder: (c, e, s) => Image.asset('assets/images/user.png', fit: BoxFit.cover),
+                            imageErrorBuilder: (c, e, s) => Center(
+                              child: Text(
+                                firstLetter,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                              ),
+                            ),
                           )
-                        : Image.asset('assets/images/user.png', fit: BoxFit.cover),
+                        : Center(
+                            child: Text(
+                              firstLetter,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                            ),
+                          ),
                   ),
                 ),
-              ),
+                if (isAd)
+                  Positioned(
+                    top: -4,
+                    left: -4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7B41A),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Ad',
+                        style: TextStyle(fontSize: 9, color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+            const SizedBox(width: 12),
 
-            // Sponsored Label (textView85) - Overlays image
-            if (isAd)
-              const Positioned(
-                top: 3,
-                left: 21,
-                child: Text(
-                  'Sponsored',
-                  style: TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.w400),
-                ),
-              ),
-
-            // Text Content (Right of Image)
-            // Starts at top: 25 as per native layout_marginTop="25dp"
-            Positioned(
-              left: 83,
-              top: isMyContact ? 0 : 15, // Center vertically if it is a My Contact
-              right: 75,
-              bottom: 0,
+            // Main Text Info
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Name (phoneNumberTextView)
                   Row(
                     children: [
                       Flexible(
@@ -138,118 +146,103 @@ class ContactCard extends StatelessWidget {
                           "${contact.name}${isFavourite ? ' ★' : ''}",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 16, color: Color(0xFF232323), fontWeight: FontWeight.w400),
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF212529), fontFamily: 'Poppins'),
                         ),
                       ),
                       if (contact.verified == 1)
                         Padding(
                           padding: const EdgeInsets.only(left: 4),
-                          child: Image.asset('assets/images/verified.png', width: 16, height: 16),
+                          child: Image.asset('assets/images/verified.png', width: 15, height: 15),
                         ),
                     ],
                   ),
 
-                  // Content logic for local vs server contacts
                   if (isMyContact) ...[
-                    // Row 2: Title (if present)
-                    if (contact.service.isNotEmpty)
+                    if (contact.service.isNotEmpty) ...[
+                      const SizedBox(height: 2),
                       Text(
                         contact.service,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF232323)),
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
                       ),
-                    // Row 2/3: Badge (Always shown for local)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
+                    ],
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3CD),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFFECB3), width: 0.8),
+                      ),
                       child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF6D207).withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.person, size: 8, color: Colors.black.withOpacity(0.6)),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'My Contact',
-                                  style: TextStyle(
-                                    fontSize: 9.5,
-                                    color: Colors.black.withOpacity(0.7),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.person, size: 10, color: Color(0xFF856404)),
+                          SizedBox(width: 3),
+                          Text(
+                            'My Contact',
+                            style: TextStyle(fontSize: 10, color: Color(0xFF856404), fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
                           ),
                         ],
                       ),
                     ),
                   ] else ...[
-                    // Standard Server Contact Layout
-                    Row(
-                      children: [
-                        if (subtitle.isNotEmpty)
+                    if (subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
+                      ),
+                    ],
+                    if (contact.location1 != null && contact.location1!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, size: 13, color: Color(0xFF6C757D)),
+                          const SizedBox(width: 3),
                           Expanded(
                             child: Text(
-                              subtitle,
+                              contact.location1!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 14, color: Color(0xFF232323)),
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF495057), fontWeight: FontWeight.w500, fontFamily: 'Poppins'),
                             ),
                           ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Image.asset('assets/images/pin.png', width: 13, height: 13),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            contact.location1 ?? '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF232323), fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
                 ],
               ),
             ),
+            const SizedBox(width: 8),
 
-            // Call Button (imageView)
-            Positioned(
-              right: 20,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: InkWell(
-                  onTap: () async {
-                    if (!isMyContact) {
-                      unawaited(ApiClient().post('savecallcount', {
-                        'phone_no': contact.phone,
-                        'location': contact.location1 ?? '',
-                        'tag': '',
-                        'country': contact.location ?? ''
-                      }));
-                    }
-                    onCall?.call();
-                    launchUrl(Uri.parse('tel:${contact.phone}'));
-                  },
-                  child: Container(
-                    width: 45,
-                    height: 45,
-                    padding: const EdgeInsets.all(10),
-                    child: Image.asset('assets/images/phone.png'),
-                  ),
+            // Call Button
+            InkWell(
+              onTap: () async {
+                if (!isMyContact) {
+                  unawaited(ApiClient().post('savecallcount', {
+                    'phone_no': contact.phone,
+                    'location': contact.location1 ?? '',
+                    'tag': '',
+                    'country': contact.location ?? ''
+                  }));
+                }
+                onCall?.call();
+                launchUrl(Uri.parse('tel:${contact.phone}'));
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE8F5E9),
+                  shape: BoxShape.circle,
                 ),
+                child: const Icon(Icons.phone, color: Colors.green, size: 18),
               ),
             ),
           ],

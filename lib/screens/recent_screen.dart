@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:call_log/call_log.dart';
+import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../services/api_client.dart';
 import '../services/session_store.dart';
 import '../models/user_session.dart';
@@ -28,8 +31,60 @@ class _RecentScreenState extends State<RecentScreen> {
   }
 
   void _load() async {
-    final history = await widget.store.getHistory();
     final favs = await widget.store.getFavourites();
+    List<DirectoryContact> history = [];
+
+    try {
+      final status = await Permission.phone.request();
+      if (status.isGranted) {
+        final Iterable<CallLogEntry> entries = await CallLog.get();
+        final DateFormat sdf = DateFormat('yyyy-MM-dd HH:mm:ss');
+        for (final entry in entries) {
+          final String rawName = entry.name?.trim() ?? '';
+          final String phone = entry.formattedNumber ?? entry.number ?? '';
+          final String name = rawName.isNotEmpty ? rawName : (phone.isNotEmpty ? phone : 'Unknown');
+
+          String service = 'Call';
+          switch (entry.callType) {
+            case CallType.incoming:
+              service = 'Incoming Call';
+              break;
+            case CallType.outgoing:
+              service = 'Outgoing Call';
+              break;
+            case CallType.missed:
+              service = 'Missed Call';
+              break;
+            case CallType.rejected:
+              service = 'Rejected Call';
+              break;
+            case CallType.blocked:
+              service = 'Blocked Call';
+              break;
+            default:
+              service = 'Call';
+          }
+
+          final String timestamp = entry.timestamp != null
+              ? sdf.format(DateTime.fromMillisecondsSinceEpoch(entry.timestamp!))
+              : '';
+
+          history.add(DirectoryContact(
+            name: name,
+            service: service,
+            phone: phone,
+            timestamp: timestamp,
+          ));
+        }
+      }
+    } catch (e) {
+      debugPrint('Error reading call log: $e');
+    }
+
+    if (history.isEmpty) {
+      history = await widget.store.getHistory();
+    }
+
     setState(() {
       _list = history;
       _filtered = _list;

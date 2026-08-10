@@ -103,7 +103,7 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
@@ -116,18 +116,30 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
               store: SessionStore(),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     _title,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins'),
                   ),
                   if (widget.mode == 'profile')
                     InkWell(
                       onTap: _addContact,
-                      child: const Text('+Add ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black, decoration: TextDecoration.underline)),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3CD),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFFECB3)),
+                        ),
+                        child: const Text(
+                          '+ Add Profile', 
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                        ),
+                      ),
                     ),
                 ],
               ),
@@ -140,28 +152,30 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              Icon(Icons.business_center_outlined, size: 54, color: Colors.grey.shade400),
+                              const SizedBox(height: 12),
                               Text(
                                 'No Business profile added yet',
-                                style: const TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                                style: const TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF212529)),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 6),
                               Text(
                                 'Add your first Business profile to manage ${_title.toLowerCase()}',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Colors.grey),
+                                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey.shade600),
                               ),
-                              const SizedBox(height: 30),
+                              const SizedBox(height: 24),
                               SizedBox(
-                                width: 200,
-                                height: 50,
+                                width: 210,
+                                height: 48,
                                 child: ElevatedButton.icon(
                                   onPressed: _addContact,
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Add Business Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  icon: const Icon(Icons.add, color: Color(0xFF212529)),
+                                  label: const Text('Add Business Profile', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF212529))),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFFD7B41A),
-                                    foregroundColor: Colors.black,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
                                 ),
                               ),
@@ -169,6 +183,7 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                           ),
                         )
                       : ListView.builder(
+                          padding: const EdgeInsets.only(top: 4, bottom: 20),
                           itemCount: _profiles.length,
                           itemBuilder: (c, i) {
                             final p = _profiles[i];
@@ -183,38 +198,62 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
   }
 
   Widget _buildItem(DirectoryContact p) {
+    final firstLetter = p.name.trim().isNotEmpty ? p.name.trim()[0].toUpperCase() : '?';
+
     return InkWell(
       onTap: () => _onItemClick(p),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.black12)),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE9ECEF), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Profile Image / Initial Avatar
             Container(
-              width: 50,
-              height: 50,
-              decoration: const BoxDecoration(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: AssetImage('assets/images/user.png'),
-                  fit: BoxFit.cover,
-                ),
+                color: const Color(0xFFFFF3CD),
+                border: Border.all(color: const Color(0xFFFFECB3), width: 1),
               ),
-              child: p.imageUrl.isNotEmpty
-                  ? ClipOval(
-                      child: FadeInImage.assetNetwork(
+              child: ClipOval(
+                child: p.imageUrl.isNotEmpty
+                    ? FadeInImage.assetNetwork(
                         placeholder: 'assets/images/user.png',
                         image: p.imageUrl,
                         fit: BoxFit.cover,
-                        imageErrorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.png', fit: BoxFit.cover),
+                        imageErrorBuilder: (context, error, stackTrace) => Center(
+                          child: Text(
+                            firstLetter,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          firstLetter,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                        ),
                       ),
-                    )
-                  : null,
+              ),
             ),
             const SizedBox(width: 12),
+
+            // Profile Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,73 +263,98 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                     p.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF232323)),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF212529), fontFamily: 'Poppins'),
                   ),
-                  Text(
-                    p.service,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14, color: Color(0xFF5F6368)),
-                  ),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 14, color: Color(0xFF5F6368)),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          p.location1 ?? '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF5F6368)),
+                  if (p.service.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      p.service,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
+                    ),
+                  ],
+                  if (p.location1 != null && p.location1!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, size: 13, color: Color(0xFF6C757D)),
+                        const SizedBox(width: 3),
+                        Expanded(
+                          child: Text(
+                            p.location1!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF495057), fontFamily: 'Poppins'),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
             const SizedBox(width: 8),
+
+            // Status & Action Badge
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (widget.mode == 'profile')
-                  Text(
-                    p.publish == 'yes' ? 'Published' : 'Verify to publish',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: p.publish == 'yes' ? const Color(0xFF0F8F51) : Colors.red,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: p.publish == 'yes' ? const Color(0xFFE8F5E9) : const Color(0xFFFFF5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      p.publish == 'yes' ? 'Published' : 'Verify to publish',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        color: p.publish == 'yes' ? const Color(0xFF0F8F51) : Colors.red,
+                      ),
                     ),
                   )
                 else if (widget.mode == 'verification')
-                  Text(
-                    p.verified == 1 ? 'Verified' : 'Not Verified',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: p.verified == 1 ? const Color(0xFF0F8F51) : Colors.red,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: p.verified == 1 ? const Color(0xFFE8F5E9) : const Color(0xFFFFF5F5),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      p.verified == 1 ? 'Verified' : 'Not Verified',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                        color: p.verified == 1 ? const Color(0xFF0F8F51) : Colors.red,
+                      ),
                     ),
                   ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(4),
+                    color: const Color(0xFFFFF3CD),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFFECB3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         widget.mode == 'traffic' ? Icons.visibility : Icons.edit,
-                        size: 16,
-                        color: Colors.black87,
+                        size: 14,
+                        color: const Color(0xFF856404),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         widget.mode == 'traffic' ? 'View' : 'Edit',
-                        style: const TextStyle(fontSize: 13, color: Colors.black87, fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF856404), fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
                       ),
                     ],
                   ),

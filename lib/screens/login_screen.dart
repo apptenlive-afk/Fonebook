@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               const SizedBox(height: 71),
-              Image.asset('assets/images/phone1.png', width: 80, height: 80),
+              Image.asset('assets/images/phonebooklogo.png', width: 80, height: 80),
               const SizedBox(height: 15),
               const Text('Fone Book', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: Color(0xFF232323))),
               const SizedBox(height: 30),

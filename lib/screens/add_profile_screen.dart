@@ -646,20 +646,20 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
 
   Widget _buildTextField(TextEditingController controller, String hint, {bool isReadOnly = false, TextInputType? keyboardType, int maxLines = 1}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
       child: TextField(
         controller: controller,
         readOnly: isReadOnly,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        style: const TextStyle(color: Color(0xFF272000), fontSize: 16, fontFamily: 'Poppins'),
+        style: const TextStyle(color: Color(0xFF212529), fontSize: 15, fontFamily: 'Poppins'),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color: Color(0xFF717171), fontFamily: 'Poppins'),
+          hintStyle: const TextStyle(color: Color(0xFF6C757D), fontFamily: 'Poppins'),
           filled: true,
-          fillColor: isReadOnly ? const Color(0xFFD0D0D0) : const Color(0xFFE6E6E6),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+          fillColor: isReadOnly ? const Color(0xFFE9ECEF) : const Color(0xFFF1F3F4),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
       ),
     );
@@ -667,21 +667,22 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
 
   Widget _buildPickerField(TextEditingController controller, String hint, VoidCallback onTap) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
       child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: IgnorePointer(
           child: TextField(
             controller: controller,
-            style: const TextStyle(color: Color(0xFF272000), fontSize: 16, fontFamily: 'Poppins'),
+            style: const TextStyle(color: Color(0xFF212529), fontSize: 15, fontFamily: 'Poppins'),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(color: Color(0xFF717171), fontFamily: 'Poppins'),
+              hintStyle: const TextStyle(color: Color(0xFF6C757D), fontFamily: 'Poppins'),
               filled: true,
-              fillColor: const Color(0xFFE6E6E6),
-              suffixIcon: const Icon(Icons.arrow_drop_down, color: Color(0xFF717171)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+              fillColor: const Color(0xFFF1F3F4),
+              suffixIcon: const Icon(Icons.arrow_drop_down, color: Color(0xFF6C757D)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
             ),
           ),
         ),

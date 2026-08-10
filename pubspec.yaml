@@ -25,6 +25,7 @@ dependencies:
   path_provider: ^2.1.5
   country_state_city: ^0.1.6
   flutter_contacts: ^1.1.9+2
+  call_log: ^6.0.1
 
 dev_dependencies:
   flutter_test:
@@ -36,9 +37,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
-  image_path: "assets/images/phone11.png"
+  image_path: "assets/images/phonebooklogo.png"
   adaptive_icon_background: "#F6D207"
-  adaptive_icon_foreground: "assets/images/phone11.png"
+  adaptive_icon_foreground: "assets/images/phonebooklogo.png"
   min_sdk_android: 21
 
 flutter:

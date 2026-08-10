@@ -30,6 +30,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _search = TextEditingController();
   final _focus = FocusNode();
+  Timer? _searchDebounce;
   bool _isSearching = false;
   bool _loading = false;
   bool _hasSearched = false;
@@ -37,39 +38,197 @@ class _HomeScreenState extends State<HomeScreen> {
   int _localMatchCount = 0;
   List<MyContactItem> _localContacts = [];
   List<DirectoryContact> _favs = [];
-  String _scopeLabel = 'International';
+  String _scopeLabel = 'Location(Current Location)';
   String? _selectedLocation; // For filtering
+  bool _userHasCustomScope = false;
+
+  String _mapCountryCodeToName(String code) {
+    final upper = code.toUpperCase();
+    const map = {
+      'IN': 'India',
+      'US': 'United States',
+      'GB': 'United Kingdom',
+      'CA': 'Canada',
+      'AU': 'Australia',
+      'NG': 'Nigeria',
+      'AE': 'United Arab Emirates',
+      'SG': 'Singapore',
+      'MY': 'Malaysia',
+      'PK': 'Pakistan',
+      'BD': 'Bangladesh',
+      'LK': 'Sri Lanka',
+      'ZA': 'South Africa',
+      'DE': 'Germany',
+      'FR': 'France',
+      'IT': 'Italy',
+      'ES': 'Spain',
+      'BR': 'Brazil',
+      'MX': 'Mexico',
+      'NZ': 'New Zealand',
+    };
+    return map[upper] ?? 'India';
+  }
 
   @override
   void initState() {
     super.initState();
     _loadData();
-    _search.addListener(() => setState(() {}));
+    _search.addListener(_onSearchChanged);
     _focus.addListener(() {
-      if (_focus.hasFocus && !_isSearching) {
-        setState(() {
-          _isSearching = true;
-          widget.onSearchModeChanged(true);
-        });
+      if (_focus.hasFocus) {
+        _loadLocalContacts();
+        if (!_isSearching) {
+          setState(() {
+            _isSearching = true;
+          });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && !_focus.hasFocus) {
+              _focus.requestFocus();
+            }
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _search.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    final q = _search.text.trim();
+    if (q.isEmpty) {
+      _searchDebounce?.cancel();
+      setState(() {
+        _results = [];
+        _hasSearched = false;
+        _loading = false;
+      });
+      return;
+    }
+
+    // Set search mode synchronously and preserve focus
+    if (!_isSearching) {
+      setState(() {
+        _isSearching = true;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_focus.hasFocus) {
+          _focus.requestFocus();
+        }
+      });
+    }
+
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted && _search.text.trim().isNotEmpty) {
+        _doSearch(_search.text.trim());
       }
     });
   }
 
   void _loadData() async {
     final favs = await widget.store.getFavourites();
-    setState(() => _favs = favs);
+    final currentSession = await widget.store.read();
+
+    if (mounted) setState(() => _favs = favs);
+
+    if (!_userHasCustomScope) {
+      String defaultCity = (currentSession.place1 != null && currentSession.place1!.isNotEmpty)
+          ? currentSession.place1!
+          : ((widget.session.place1 != null && widget.session.place1!.isNotEmpty)
+              ? widget.session.place1!
+              : "Current Location");
+
+      if (mounted) {
+        setState(() {
+          _scopeLabel = "Location($defaultCity)";
+          _selectedLocation = defaultCity == "Current Location" ? null : defaultCity;
+        });
+      }
+
+      _autoFetchLocation();
+    }
+
     _loadLocalContacts();
   }
 
-  void _loadLocalContacts() async {
+  Future<void> _autoFetchLocation() async {
     try {
-      final email = (widget.session.email != null && widget.session.email!.isNotEmpty)
-          ? widget.session.email!
-          : (widget.session.phone ?? 'guest@fonebook.com');
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+          timeLimit: const Duration(seconds: 4),
+        );
+
+        if (!kIsWeb) {
+          List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+          if (placemarks.isNotEmpty) {
+            Placemark p = placemarks.first;
+            final subLocality = p.subLocality?.trim();
+            final locality = p.locality?.trim();
+
+            String cityArea = "Current Location";
+            if (subLocality != null && subLocality.isNotEmpty && locality != null && locality.isNotEmpty) {
+              cityArea = "$subLocality, $locality";
+            } else if (locality != null && locality.isNotEmpty) {
+              cityArea = locality;
+            }
+
+            if (mounted && !_userHasCustomScope) {
+              setState(() {
+                _scopeLabel = "Location($cityArea)";
+                _selectedLocation = cityArea;
+              });
+              if (_search.text.isNotEmpty) _doSearch(_search.text);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Auto location detection error: $e");
+    }
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session.email != widget.session.email || oldWidget.session.phone != widget.session.phone) {
+      _loadLocalContacts();
+    }
+  }
+
+  Future<void> _loadLocalContacts() async {
+    final List<MyContactItem> list = [];
+    try {
+      final currentSession = await widget.store.read();
+      final email = (currentSession.email != null && currentSession.email!.isNotEmpty)
+          ? currentSession.email!
+          : ((currentSession.phone != null && currentSession.phone!.isNotEmpty)
+              ? currentSession.phone!
+              : ((widget.session.email != null && widget.session.email!.isNotEmpty)
+                  ? widget.session.email!
+                  : (widget.session.phone ?? 'guest@fonebook.com')));
+
       final res = await widget.api.post('get_my_contacts', {'email': email, 'owner_email': email});
       if (res is List) {
+        list.addAll(res.map((e) => MyContactItem.fromJson(Map<String, dynamic>.from(e))));
+      }
+
+      if (mounted) {
         setState(() {
-          _localContacts = res.map((e) => MyContactItem.fromJson(Map<String, dynamic>.from(e))).toList();
+          _localContacts = list;
         });
       }
     } catch (e) {
@@ -83,60 +242,101 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _doSearch(String q) async {
-    if (q.trim().isEmpty) return;
+    final query = q.trim().toLowerCase();
+    if (query.isEmpty) return;
+
     setState(() {
       _loading = true;
       _isSearching = true;
       _hasSearched = true;
-      widget.onSearchModeChanged(true);
     });
+
     try {
-      // Save search history
       unawaited(widget.api.post('savesearch', {
         'tag': q.trim(),
         'country': widget.session.country ?? '',
         'location': widget.session.place1 ?? '',
       }));
 
-      // Always fetch latest local contacts during search to ensure sync
-      final email = (widget.session.email != null && widget.session.email!.isNotEmpty)
-          ? widget.session.email!
-          : (widget.session.phone ?? 'guest@fonebook.com');
-      final localRes = await widget.api.post('get_my_contacts', {'email': email, 'owner_email': email});
-      if (localRes is List) {
-        _localContacts = localRes.map((e) => MyContactItem.fromJson(Map<String, dynamic>.from(e))).toList();
-      }
+      await _loadLocalContacts();
 
-      final data = await widget.api.get('check-contact', {
-        'type': 'search',
-        'query': q.trim(),
-        'location': _selectedLocation,
-      });
-      final List list = data;
+      final cleanQ = query.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
 
-      // Filter local contacts
-      final query = q.trim().toLowerCase();
       final localMatches = _localContacts.where((c) {
-        return c.name.toLowerCase().contains(query) ||
-               c.title.toLowerCase().contains(query) ||
-               c.phone.toLowerCase().contains(query);
+        final cleanP = c.phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+        final nameMatch = c.name.toLowerCase().contains(query);
+        final titleMatch = c.title.toLowerCase().contains(query);
+        final phoneMatch = cleanQ.isNotEmpty && cleanP.contains(cleanQ);
+        return nameMatch || titleMatch || phoneMatch;
       }).map((c) => DirectoryContact(
         name: c.name,
         service: c.title,
         phone: c.phone,
         priority: '1',
         priorityBalance: '0',
-        category: 'my_contact', // Marker for local contact in history
-        showContact: 'mwelsf', // Default show all for local contacts
+        category: 'my_contact',
+        showContact: 'mwelsf',
       )).toList();
 
+      final isContactNameSearch = _localContacts.any(
+        (c) => c.name.toLowerCase().contains(query),
+      );
+
+      List<DirectoryContact> apiResults = [];
+
+      if (!isContactNameSearch) {
+        String apiLocation = '';
+        if (_scopeLabel.startsWith('Location(') || _scopeLabel.startsWith('Country(')) {
+          apiLocation = _selectedLocation ?? '';
+        }
+
+        final data = await widget.api.get('check-contact', {
+          'type': 'search',
+          'query': q.trim(),
+          'location': apiLocation,
+        });
+
+        if (data is List) {
+          apiResults = data
+              .where((e) => e != null && e is Map && e['name'] != null && e['name'].toString().trim().isNotEmpty)
+              .map((e) => DirectoryContact.fromJson(e))
+              .where((e) {
+                final cleanPhone = e.phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
+                final nameMatch = e.name.toLowerCase().contains(query);
+                final serviceMatch = e.service.toLowerCase().contains(query);
+                final keywordMatch = (e.keyword ?? '').toLowerCase().contains(query);
+                final tagsMatch = (e.tags ?? '').toLowerCase().contains(query);
+                final aboutMatch = (e.about ?? '').toLowerCase().contains(query);
+                final phoneMatch = cleanQ.isNotEmpty && cleanPhone.contains(cleanQ);
+
+                final textMatch = nameMatch || serviceMatch || keywordMatch || tagsMatch || aboutMatch || phoneMatch;
+                if (!textMatch) return false;
+
+                final who = (e.whoContact ?? 'international').toLowerCase();
+                if (who == 'international' || who == 'all' || who.isEmpty) {
+                  return true;
+                }
+
+                final isLocationSearch = _scopeLabel.startsWith('Location(');
+                final isCountrySearch = _scopeLabel.startsWith('Country(');
+                final isInternationalSearch = _scopeLabel == 'International';
+
+                if (who == 'country') {
+                  return isCountrySearch || isInternationalSearch;
+                }
+
+                if (who == 'location') {
+                  return isLocationSearch;
+                }
+
+                return true;
+              })
+              .where((e) => !localMatches.any((l) => l.phone == e.phone))
+              .toList();
+        }
+      }
+
       setState(() {
-        final apiResults = list
-            .where((e) => e != null && e is Map && e['name'] != null && e['name'].toString().trim().isNotEmpty)
-            .map((e) => DirectoryContact.fromJson(e))
-            .where((e) => !localMatches.any((l) => l.phone == e.phone)) // Avoid duplicates
-            .toList();
-            
         _results = [...localMatches, ...apiResults];
         _localMatchCount = localMatches.length;
       });
@@ -168,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         setState(() {
-          _scopeLabel = cityArea;
+          _scopeLabel = "Location($cityArea)";
           _selectedLocation = cityArea;
         });
         if (_search.text.isNotEmpty) _doSearch(_search.text);
@@ -180,28 +380,33 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showScopeMenu() {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay = Navigator.of(context).overlay!.context.findRenderObject() as RenderBox;
+  void _showScopeMenuAt(BuildContext btnContext) {
+    final RenderBox button = btnContext.findRenderObject() as RenderBox;
+    final RenderBox overlay = Navigator.of(btnContext).overlay!.context.findRenderObject() as RenderBox;
+
+    final Offset topLeft = button.localToGlobal(Offset.zero, ancestor: overlay);
+    final Offset bottomRight = button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay);
+
     final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
-      ),
+      Rect.fromPoints(topLeft, bottomRight),
       Offset.zero & overlay.size,
     );
 
     showMenu<String>(
-      context: context,
-      position: position.shift(const Offset(24, 160)), // Positioned near the "Change" text
-      items: [
-        const PopupMenuItem(value: 'International', child: Text('International')),
-        const PopupMenuItem(value: 'Country', child: Text('Country')),
-        const PopupMenuItem(value: 'Location', child: Text('Current Location')),
+      context: btnContext,
+      position: position,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 6,
+      color: const Color(0xFFFFF9E6),
+      items: const [
+        PopupMenuItem(value: 'International', child: Text('International', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
+        PopupMenuItem(value: 'Country', child: Text('Country', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
+        PopupMenuItem(value: 'Location', child: Text('Current Location', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
       ],
     ).then((value) async {
       if (value == 'International') {
         setState(() {
+          _userHasCustomScope = true;
           _scopeLabel = 'International';
           _selectedLocation = null;
         });
@@ -212,18 +417,78 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (c) => const CountryPickerDialog(title: 'Select Country', items: countriesList),
         );
         if (res != null) {
-          // Remove emoji
           final name = res.substring(res.indexOf(' ') + 1).trim();
           setState(() {
-            _scopeLabel = name;
+            _userHasCustomScope = true;
+            _scopeLabel = 'Country($name)';
             _selectedLocation = name;
           });
           if (_search.text.isNotEmpty) _doSearch(_search.text);
         }
       } else if (value == 'Location') {
+        _userHasCustomScope = true;
         _fetchCurrentLocation();
       }
     });
+  }
+
+  Widget _buildScopePill() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE9ECEF), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.public, size: 16, color: Color(0xFF5F6368)),
+          const SizedBox(width: 6),
+          const Text(
+            'Result for ',
+            style: TextStyle(color: Color(0xFF5F6368), fontSize: 13, fontFamily: 'Poppins'),
+          ),
+          Flexible(
+            child: Text(
+              _scopeLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF202124), fontSize: 13, fontFamily: 'Poppins'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Builder(
+            builder: (btnContext) {
+              return InkWell(
+                onTap: () => _showScopeMenuAt(btnContext),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3CD),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFECB3), width: 0.8),
+                  ),
+                  child: const Text(
+                    'Change',
+                    style: TextStyle(color: Color(0xFF856404), fontWeight: FontWeight.w600, fontSize: 12, fontFamily: 'Poppins'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -239,7 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset('assets/images/phone1.png', width: 140, height: 60, fit: BoxFit.contain),
+                    Image.asset('assets/images/phonebooklogo.png', width: 140, height: 60, fit: BoxFit.contain),
                     const SizedBox(height: 8),
                     const Text(
                       'Fone Book',
@@ -253,6 +518,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       "Ex: Plumber, Doctor, Developer, Electrician, Hotel...",
                       style: TextStyle(color: Colors.grey[500], fontSize: 13, fontFamily: 'Poppins'),
                     ),
+                    const SizedBox(height: 16),
+                    _buildScopePill(),
                   ],
                 ),
               ),
@@ -270,35 +537,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.only(top: 80),
                 child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      child: Row(
-                        children: [
-                          const Text('Result for ', style: TextStyle(color: Color(0xFF5F6368), fontSize: 14)),
-                          Text(_scopeLabel, style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF202124), fontSize: 14)),
-                          const SizedBox(width: 8),
-                          InkWell(
-                            onTap: _showScopeMenu,
-                            child: const Text('Change', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500, fontSize: 14, decoration: TextDecoration.underline)),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildScopePill(),
                     Expanded(
                       child: _loading
-                          ? const Center(child: CircularProgressIndicator())
+                          ? const Center(child: CircularProgressIndicator(color: Color(0xFFD7B41A)))
                           : _hasSearched && _results.isEmpty && _search.text.isNotEmpty
                               ? Padding(
-                                  padding: const EdgeInsets.only(top: 50),
+                                  padding: const EdgeInsets.only(top: 60),
                                   child: Column(
                                     children: [
-                                      const Text('No Phone numbers found', 
-                                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF202124))),
+                                      Icon(Icons.search_off, size: 52, color: Colors.grey.shade400),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'No contacts found', 
+                                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF202124), fontFamily: 'Poppins')),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Try searching for another name, title, or phone number',
+                                        style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontFamily: 'Poppins')),
                                     ],
                                   ),
                                 )
                               : ListView.builder(
-                                  padding: const EdgeInsets.only(top: 8, bottom: 20),
+                                  padding: const EdgeInsets.only(top: 6, bottom: 20),
                                   itemCount: _results.length,
                                   itemBuilder: (c, i) {
                                     final contact = _results[i];
@@ -338,9 +599,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   top: _isSearching ? 20 : 80, // Positioned below Logo/Name when centered
                 ),
                 child: Card(
-                  elevation: 4,
-                  shadowColor: Colors.black.withOpacity(0.2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                  elevation: 3,
+                  shadowColor: Colors.black.withValues(alpha: 0.1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(26),
+                    side: BorderSide(color: Colors.grey.shade200, width: 1),
+                  ),
                   child: Container(
                     height: 52,
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -385,9 +649,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               hintText: 'Search name or Keyword...',
                               border: InputBorder.none,
                               contentPadding: EdgeInsets.zero,
-                              hintStyle: TextStyle(color: Color(0xFF5F6368)),
+                              hintStyle: TextStyle(color: Color(0xFF5F6368), fontFamily: 'Poppins'),
                             ),
-                            style: const TextStyle(fontSize: 16),
+                            style: const TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Color(0xFF202124)),
                           ),
                         ),
                         if (_search.text.isNotEmpty)

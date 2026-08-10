@@ -140,134 +140,145 @@ class _PromoteScreenState extends State<PromoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
             AppHeader(
-              title: 'Promote',
+              title: 'Fone Book',
               onBack: () => Navigator.pop(context),
               showMenu: false,
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(widget.contact.name, 
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins')),
-                    Text(widget.contact.phone, 
-                      style: const TextStyle(fontSize: 14, color: Colors.grey, fontFamily: 'Poppins')),
-                    const SizedBox(height: 15),
-                    
-                    _buildSwitchRow('Promote', _isPromoting, _updatePriority, isMain: true),
-                    
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        const Text('Balance Amount for Promotion', style: TextStyle(fontSize: 15, color: Colors.black, fontFamily: 'Poppins')),
-                        const Spacer(),
-                        Text('\$ ${_formatBalance(_balance)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins')),
-                      ],
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE9ECEF)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3CD),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.campaign, color: Color(0xFF856404), size: 26),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.contact.name, 
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins'),
+                                ),
+                                Text(
+                                  widget.contact.phone, 
+                                  style: const TextStyle(fontSize: 13, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+
+                    const SizedBox(height: 16),
                     
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {
-                           showDialog(
-                             context: context, 
-                             builder: (c) => const PaymentDialog()
-                           );
-                        },
-                        child: const Text('+Add Amount', 
-                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, decoration: TextDecoration.underline, fontFamily: 'Poppins')),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3CD),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFFFECB3)),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.account_balance_wallet, color: Color(0xFF856404), size: 20),
+                              const SizedBox(width: 8),
+                              const Text('Balance for Promotion', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                              const Spacer(),
+                              Text('\$ ${_formatBalance(_balance)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: InkWell(
+                              onTap: () {
+                                showDialog(
+                                  context: context, 
+                                  builder: (c) => const PaymentDialog()
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD7B41A),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Text(
+                                  '+ Add Amount', 
+                                  style: TextStyle(color: Color(0xFF212529), fontWeight: FontWeight.bold, fontSize: 13, fontFamily: 'Poppins'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     
-                    const Divider(height: 40, thickness: 1.5, color: Color(0xFFD7D0B4)),
+                    const SizedBox(height: 20),
                     
-                    const Text('Keywords', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins')),
-                    const SizedBox(height: 5),
-                    _buildSwitchRow('Broad (Default)', _searchType == 'broad', (v) {
-                      if (v) _updateSearchType('broad');
-                    }),
-                    _buildSwitchRow('Phrase', _searchType == 'phrase', (v) {
-                      if (v) _updateSearchType('phrase');
-                    }),
-                    _buildSwitchRow('Exact', _searchType == 'exact', (v) {
-                      if (v) _updateSearchType('exact');
-                    }),
-                    
-                    /*
-                    const Divider(height: 40, thickness: 1.5, color: Color(0xFFD7D0B4)),
-                    
-                    const Text('Promote Target', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins')),
-                    const SizedBox(height: 5),
-                    _buildSwitchRow('International', _isInternational, (v) {
-                      setState(() => _isInternational = v);
-                      _savePromote();
-                    }),
-                    
-                    _buildLocationRow('Country', _selectedCountry, () async {
-                      final list = await LocationService.getCountries();
-                      if (!mounted) return;
-                      showDialog(
-                        context: context,
-                        builder: (c) => SearchDialog(
-                          title: 'Select Country',
-                          items: ['All', ...list.map((e) => e.name)],
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedCountry = val;
-                              _selectedState = 'All';
-                              _selectedCity = 'All';
-                              _countryCode = val == 'All' ? null : list.firstWhere((e) => e.name == val).isoCode;
-                            });
-                            _savePromote();
-                          },
-                        ),
-                      );
-                    }),
-                    _buildLocationRow('State', _selectedState, () async {
-                      if (_countryCode == null) return;
-                      final list = await LocationService.getStates(_countryCode!);
-                      if (!mounted) return;
-                      showDialog(
-                        context: context,
-                        builder: (c) => SearchDialog(
-                          title: 'Select State',
-                          items: ['All', ...list.map((e) => e.name)],
-                          onSelected: (val) {
-                            setState(() {
-                              _selectedState = val;
-                              _selectedCity = 'All';
-                              _stateCode = val == 'All' ? null : list.firstWhere((e) => e.name == val).isoCode;
-                            });
-                            _savePromote();
-                          },
-                        ),
-                      );
-                    }),
-                    _buildLocationRow('City', _selectedCity, () async {
-                      if (_stateCode == null || _countryCode == null) return;
-                      final list = await LocationService.getCities(_countryCode!, _stateCode!);
-                      if (!mounted) return;
-                      showDialog(
-                        context: context,
-                        builder: (c) => SearchDialog(
-                          title: 'Select City',
-                          items: ['All', ...list.map((e) => e.name)],
-                          onSelected: (val) {
-                            setState(() => _selectedCity = val);
-                            _savePromote();
-                          },
-                        ),
-                      );
-                    }),
-                    */
-                    const SizedBox(height: 40),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE9ECEF)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSwitchRow('Enable Promotion', _isPromoting, _updatePriority, isMain: true),
+                          const Divider(height: 24),
+                          const Text('Search Keyword Match Type', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins')),
+                          const SizedBox(height: 6),
+                          _buildSwitchRow('Broad (Default)', _searchType == 'broad', (v) {
+                            if (v) _updateSearchType('broad');
+                          }),
+                          _buildSwitchRow('Phrase', _searchType == 'phrase', (v) {
+                            if (v) _updateSearchType('phrase');
+                          }),
+                          _buildSwitchRow('Exact', _searchType == 'exact', (v) {
+                            if (v) _updateSearchType('exact');
+                          }),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),

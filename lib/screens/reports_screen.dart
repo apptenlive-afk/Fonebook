@@ -73,7 +73,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     final isPaid = widget.type == 'paid';
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
@@ -86,45 +86,64 @@ class _ReportsScreenState extends State<ReportsScreen> {
               session: UserSession(phone: widget.phone),
             ),
             
-            Padding(
-              padding: const EdgeInsets.only(left: 15, right: 5, top: 15),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE9ECEF)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
                       isPaid ? 'Paid Traffic Reports' : 'Organic Traffic Reports',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins'),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins'),
                     ),
                   ),
-                  SizedBox(
-                    width: 120,
-                    child: DropdownButton<String>(
-                      value: _range,
-                      isExpanded: true,
-                      underline: Container(height: 1, color: Colors.grey),
-                      items: ['All', 'Today', 'Yesterday', 'Last 7 days', 'Last Week', 'Last Month']
-                          .map((e) => DropdownMenuItem(value: e, child: Center(child: Text(e, style: const TextStyle(fontSize: 14, fontFamily: 'Poppins'))))).toList(),
-                      onChanged: (v) {
-                        setState(() {
-                          _range = v!;
-                          _load();
-                        });
-                      },
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3CD),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFFECB3)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _range,
+                        isDense: true,
+                        dropdownColor: Colors.white,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                        items: ['All', 'Today', 'Yesterday', 'Last 7 days', 'Last Week', 'Last Month']
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            _range = v!;
+                            _load();
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             
-            const SizedBox(height: 15),
-            
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
               child: Row(
                 children: [
                   const Expanded(
                     flex: 3,
-                    child: Text('Search Keywords', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF232323), fontFamily: 'Poppins')),
+                    child: Text('Search Keywords', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF495057), fontFamily: 'Poppins')),
                   ),
                   SizedBox(
                     width: 60,
@@ -138,22 +157,23 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   if (isPaid) ...[
                     const SizedBox(width: 5),
                     const SizedBox(
-                      width: 80,
-                      child: Text('Amount', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins')),
+                      width: 70,
+                      child: Text('Amount', textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF495057), fontFamily: 'Poppins')),
                     ),
                   ],
                 ],
               ),
             ),
             
-            const SizedBox(height: 10),
+            const SizedBox(height: 6),
 
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFFD7B41A)))
                   : _rows.isEmpty
-                      ? const Center(child: Text('No Traffic Reports', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins')))
+                      ? const Center(child: Text('No Traffic Reports', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF6C757D), fontFamily: 'Poppins')))
                       : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
                           itemCount: _rows.length,
                           itemBuilder: (c, i) {
                             final r = _rows[i];
@@ -179,40 +199,64 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(asset, width: 20, height: 20),
-        Text(label ?? '', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+        Image.asset(asset, width: 18, height: 18),
+        Text(label ?? '', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF6C757D), fontFamily: 'Poppins')),
       ],
     );
   }
 
   Widget _buildReportItem(String tag, String searchCount, String callCount, String? amount) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE9ECEF)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Expanded(
             flex: 3,
             child: Text(
-              tag, 
+              tag.isNotEmpty ? tag : 'General Search', 
               maxLines: 1, 
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 15, color: Colors.black, fontFamily: 'Poppins')
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF212529), fontFamily: 'Poppins')
             ),
           ),
           SizedBox(
             width: 60,
-            child: Text(searchCount, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, color: Colors.black, fontFamily: 'Poppins')),
+            child: Text(searchCount, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF495057), fontFamily: 'Poppins')),
           ),
           const SizedBox(width: 5),
           SizedBox(
             width: 60,
-            child: Text(callCount, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, color: Colors.black, fontFamily: 'Poppins')),
+            child: Text(callCount, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF495057), fontFamily: 'Poppins')),
           ),
           if (amount != null) ...[
             const SizedBox(width: 5),
             SizedBox(
-              width: 80,
-              child: Text('\$$amount', textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, color: Colors.black, fontFamily: 'Poppins')),
+              width: 70,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3CD),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '\$$amount', 
+                  textAlign: TextAlign.center, 
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                ),
+              ),
             ),
           ],
         ],

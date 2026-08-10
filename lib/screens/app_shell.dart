@@ -5,7 +5,6 @@ import '../models/user_session.dart';
 import 'home_screen.dart';
 import 'recent_screen.dart';
 import 'favourites_screen.dart';
-import 'my_contacts_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -21,7 +20,6 @@ class _AppShellState extends State<AppShell> {
   bool _hideFooter = false;
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
-    GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -76,49 +74,70 @@ class _AppShellState extends State<AppShell> {
             )),
             _buildNavigator(1, RecentScreen(api: api, store: store, session: _session)),
             _buildNavigator(2, FavouritesScreen(api: api, store: store, session: _session)),
-            _buildNavigator(3, MyContactsScreen(api: api, session: _session)),
           ],
         ),
-        bottomNavigationBar: Theme(
-                data: Theme.of(context).copyWith(
-                  canvasColor: const Color(0xFF242424),
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF212529),
+            border: Border(top: BorderSide(color: Color(0xFF343A40), width: 0.8)),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              canvasColor: const Color(0xFF212529),
+            ),
+            child: BottomNavigationBar(
+              currentIndex: _index,
+              onTap: (i) {
+                if (_index == i) {
+                  _navigatorKeys[i].currentState?.popUntil((route) => route.isFirst);
+                } else {
+                  setState(() => _index = i);
+                }
+              },
+              backgroundColor: const Color(0xFF212529),
+              selectedItemColor: const Color(0xFFF6D207),
+              unselectedItemColor: const Color(0xFFA0A0A0),
+              selectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 12),
+              unselectedLabelStyle: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500, fontSize: 12),
+              type: BottomNavigationBarType.fixed,
+              items: [
+                BottomNavigationBarItem(
+                  icon: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _index == 0 ? const Color(0xFF343A40) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Image.asset('assets/images/search.png', width: 20, height: 20, color: _index == 0 ? const Color(0xFFF6D207) : const Color(0xFFA0A0A0)),
+                  ),
+                  label: 'Search',
                 ),
-                child: BottomNavigationBar(
-                  currentIndex: _index,
-                  onTap: (i) {
-                    if (_index == i) {
-                      _navigatorKeys[i].currentState?.popUntil((route) => route.isFirst);
-                    } else {
-                      setState(() => _index = i);
-                    }
-                  },
-                  backgroundColor: const Color(0xFF242424),
-                  selectedItemColor: const Color(0xFFF6D207),
-                  unselectedItemColor: const Color(0xFF808080),
-                  type: BottomNavigationBarType.fixed,
-                  items: [
-                    BottomNavigationBarItem(
-                      icon: Padding(
-                        padding: const EdgeInsets.only(bottom: 2),
-                        child: Image.asset('assets/images/search.png', width: 20, height: 20, color: _index == 0 ? const Color(0xFFF6D207) : const Color(0xFF808080)),
-                      ),
-                      label: 'Search',
+                BottomNavigationBarItem(
+                  icon: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _index == 1 ? const Color(0xFF343A40) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    BottomNavigationBarItem(
-                      icon: Image.asset('assets/images/recent.png', width: 24, height: 24, color: _index == 1 ? const Color(0xFFF6D207) : const Color(0xFF808080)),
-                      label: 'Recent',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Image.asset('assets/images/star.png', width: 24, height: 24, color: _index == 2 ? const Color(0xFFF6D207) : const Color(0xFF808080)),
-                      label: 'Favourites',
-                    ),
-                    BottomNavigationBarItem(
-                      icon: Image.asset('assets/images/group.png', width: 24, height: 24, color: _index == 3 ? const Color(0xFFF6D207) : const Color(0xFF808080)),
-                      label: 'My Contacts',
-                    ),
-                  ],
+                    child: Image.asset('assets/images/recent.png', width: 22, height: 22, color: _index == 1 ? const Color(0xFFF6D207) : const Color(0xFFA0A0A0)),
+                  ),
+                  label: 'Recent',
                 ),
-              ),
+                BottomNavigationBarItem(
+                  icon: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _index == 2 ? const Color(0xFF343A40) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Image.asset('assets/images/star.png', width: 22, height: 22, color: _index == 2 ? const Color(0xFFF6D207) : const Color(0xFFA0A0A0)),
+                  ),
+                  label: 'Favourites',
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

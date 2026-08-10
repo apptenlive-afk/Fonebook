@@ -29,7 +29,15 @@ class _VisibilityScreenState extends State<VisibilityScreen> {
     s = widget.initial.contains('s');
     f = widget.initial.contains('f');
     pub = widget.contact.publish == 'yes';
-    _whoContact = widget.contact.whoContact ?? 'all';
+
+    final rawWho = (widget.contact.whoContact ?? 'international').toLowerCase();
+    if (rawWho == 'country') {
+      _whoContact = 'country';
+    } else if (rawWho == 'location') {
+      _whoContact = 'location';
+    } else {
+      _whoContact = 'international';
+    }
   }
 
   void _saveShow() async {
@@ -70,7 +78,7 @@ class _VisibilityScreenState extends State<VisibilityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
@@ -84,103 +92,129 @@ class _VisibilityScreenState extends State<VisibilityScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Padding(
-                      padding: EdgeInsets.fromLTRB(25, 20, 25, 10),
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: Text(
-                        'Settings',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.black, fontFamily: 'Poppins'),
+                        'Profile Settings',
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins'),
                       ),
                     ),
-                    const Divider(height: 1, color: Color(0xFFD7D7D7)),
-                    
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(30, 15, 25, 5),
-                      child: Text(
-                        'Show Contacts',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.black, fontFamily: 'Poppins'),
-                      ),
-                    ),
-                    
-                    _buildNativeSwitchTile('Mobile no', m, (v) { setState(() => m = v); _saveShow(); }),
-                    _buildNativeSwitchTile('Whatsapp', w, (v) { setState(() => w = v); _saveShow(); }),
-                    _buildNativeSwitchTile('Email', e, (v) { setState(() => e = v); _saveShow(); }),
-                    _buildNativeSwitchTile('Landline', l, (v) { setState(() => l = v); _saveShow(); }),
-                    _buildNativeSwitchTile('Skype', s, (v) { setState(() => s = v); _saveShow(); }),
-                    _buildNativeSwitchTile('Full Address', f, (v) { setState(() => f = v); _saveShow(); }),
-                    
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      child: Divider(height: 2, thickness: 1.5, color: Color(0xFFD7D0B4)),
-                    ),
-                    
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(30, 0, 25, 5),
-                      child: Text(
-                        'Access',
-                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.black, fontFamily: 'Poppins'),
-                      ),
-                    ),
-                    
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(80, 15, 25, 0),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Who can contact you',
-                              style: TextStyle(fontSize: 16, color: Colors.black, fontFamily: 'Poppins'),
-                            ),
+                    const SizedBox(height: 14),
+
+                    // Show Contacts Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE9ECEF)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _whoContact.toLowerCase(),
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Show Contacts',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins'),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildNativeSwitchTile('Mobile no', m, (v) { setState(() => m = v); _saveShow(); }),
+                          _buildNativeSwitchTile('Whatsapp', w, (v) { setState(() => w = v); _saveShow(); }),
+                          _buildNativeSwitchTile('Email', e, (v) { setState(() => e = v); _saveShow(); }),
+                          _buildNativeSwitchTile('Landline', l, (v) { setState(() => l = v); _saveShow(); }),
+                          _buildNativeSwitchTile('Skype', s, (v) { setState(() => s = v); _saveShow(); }),
+                          _buildNativeSwitchTile('Full Address', f, (v) { setState(() => f = v); _saveShow(); }),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Access Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE9ECEF)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Access',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF212529), fontFamily: 'Poppins'),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  'Who can contact you',
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF495057), fontFamily: 'Poppins'),
+                                ),
                               ),
-                              items: const [
-                                DropdownMenuItem(value: 'all', child: Text('All Users', style: TextStyle(fontSize: 14))),
-                                DropdownMenuItem(value: 'verified', child: Text('Only Verified', style: TextStyle(fontSize: 14))),
-                              ],
-                              onChanged: (v) => _saveWho(v!),
-                            ),
+                              const SizedBox(width: 12),
+                              SizedBox(
+                                width: 160,
+                                child: DropdownButtonFormField<String>(
+                                  value: _whoContact,
+                                  isExpanded: true,
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                    filled: true,
+                                    fillColor: const Color(0xFFFFF3CD),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(color: Color(0xFFFFECB3)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: const BorderSide(color: Color(0xFFFFECB3)),
+                                    ),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'international',
+                                      child: Text('International', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'country',
+                                      child: Text('Country', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'location',
+                                      child: Text('Current Location', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                                    ),
+                                  ],
+                                  onChanged: (v) => _saveWho(v!),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 15),
-                    /*
-                    const Divider(height: 2, thickness: 1.5, color: Color(0xFFD7D0B4)),
-                    
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(80, 20, 25, 0),
-                      child: Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Publish profile',
-                              style: TextStyle(fontSize: 16, color: Colors.black, fontFamily: 'Poppins'),
-                            ),
-                          ),
-                          Switch(
-                            value: pub,
-                            onChanged: (v) {
-                              setState(() => pub = v);
-                              _savePub(v);
-                            },
-                            activeColor: const Color(0xFFD7B41A),
-                          ),
-                        ],
-                      ),
-                    ),
-                    */
-                    const SizedBox(height: 40),
+
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
@@ -199,15 +233,15 @@ class _VisibilityScreenState extends State<VisibilityScreen> {
     if (title == 'Skype' && (widget.contact.skype == null || widget.contact.skype!.isEmpty)) canToggle = false;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(80, 0, 25, 0),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 16, 
-                color: canToggle ? Colors.black : Colors.grey, 
+                fontSize: 15, 
+                color: canToggle ? const Color(0xFF212529) : Colors.grey, 
                 fontFamily: 'Poppins'
               ),
             ),

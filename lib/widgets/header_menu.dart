@@ -28,7 +28,7 @@ class HeaderMenu extends StatelessWidget {
       icon: Image.asset('assets/images/three_dots.png', width: 25, height: 30),
       onSelected: (v) async {
         if (v == 'Logout') {
-          SessionStore().clear().then((_) => Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false));
+          _confirmAndLogout(context);
           return;
         }
 
@@ -46,8 +46,14 @@ class HeaderMenu extends StatelessWidget {
           return;
         }
 
+        if (v == 'My Contacts') {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.push(context, MaterialPageRoute(builder: (_) => MyContactsScreen(api: effectiveApi, session: effectiveSession)));
+          return;
+        }
+
         String mode = '';
-        if (v == 'Profile') mode = 'profile';
+        if (v == 'Profile' || v == 'Business') mode = 'profile';
         else if (v == 'Keywords') mode = 'keywords';
         else if (v == 'Verification') mode = 'verification';
         else if (v == 'Promote') mode = 'promote';
@@ -59,11 +65,12 @@ class HeaderMenu extends StatelessWidget {
         }
       },
       itemBuilder: (c) => [
-        const PopupMenuItem(value: 'Profile', child: Text('Profile')),
+        const PopupMenuItem(value: 'Business', child: Text('Business')),
         const PopupMenuItem(value: 'Keywords', child: Text('Keywords')),
         //const PopupMenuItem(value: 'Verification', child: Text('Verification')),
         const PopupMenuItem(value: 'Promote', child: Text('Promote')),
         const PopupMenuItem(value: 'Traffic', child: Text('Traffic')),
+        const PopupMenuItem(value: 'My Contacts', child: Text('My Contacts')),
         const PopupMenuItem(value: 'Settings', child: Text('Settings')),
         const PopupMenuItem(value: 'Logout', child: Text('Logout')),
       ],
@@ -93,6 +100,63 @@ class HeaderMenu extends StatelessWidget {
       if (value != null) {
         Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileListScreen(api: effectiveApi, session: effectiveSession, mode: 'traffic', trafficType: value)));
+      }
+    });
+  }
+
+  void _confirmAndLogout(BuildContext context) {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.logout, color: Colors.red, size: 22),
+            SizedBox(width: 8),
+            Text(
+              'Logout', 
+              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF212529)),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to log out of Fone Book?',
+          style: TextStyle(fontFamily: 'Poppins', fontSize: 14, color: Color(0xFF495057)),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, color: Color(0xFF6C757D)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'Logout',
+              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    ).then((confirm) async {
+      if (confirm == true && context.mounted) {
+        await SessionStore().clear();
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()), 
+            (r) => false,
+          );
+        }
       }
     });
   }

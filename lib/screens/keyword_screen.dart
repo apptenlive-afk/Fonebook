@@ -109,7 +109,7 @@ class _KeywordScreenState extends State<KeywordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
@@ -123,21 +123,66 @@ class _KeywordScreenState extends State<KeywordScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 27),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 35),
-                    
-                    Text(widget.name, 
-                      style: const TextStyle(
-                        fontSize: 20, 
-                        fontWeight: FontWeight.bold, 
-                        color: Color(0xFF272000), 
-                        fontFamily: 'Poppins'
-                      )
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE9ECEF), width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3CD),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.tag, color: Color(0xFF856404), size: 24),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.name, 
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold, 
+                                    color: Color(0xFF212529), 
+                                    fontFamily: 'Poppins'
+                                  ),
+                                ),
+                                if (widget.service.isNotEmpty)
+                                  Text(
+                                    widget.service,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 13, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 25),
+                    
+                    const SizedBox(height: 20),
                     
                     Row(
                       children: [
@@ -146,59 +191,67 @@ class _KeywordScreenState extends State<KeywordScreen> {
                             controller: _tagController,
                             onSubmitted: (_) => _addTag(),
                             textInputAction: TextInputAction.done,
-                            style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+                            style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500, fontSize: 15),
                             decoration: InputDecoration(
-                              hintText: 'Keyword Tag',
-                              hintStyle: const TextStyle(color: Color(0xFF5A5A5A), fontFamily: 'Poppins'),
+                              hintText: 'Add Keyword Tag...',
+                              hintStyle: const TextStyle(color: Color(0xFF6C757D), fontFamily: 'Poppins'),
                               filled: true,
-                              fillColor: const Color(0xFFE6E6E6),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(5), borderSide: BorderSide.none),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                              fillColor: const Color(0xFFF1F3F4),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 15),
+                        const SizedBox(width: 12),
                         InkWell(
                           onTap: _addTag,
-                          child: const Text('+Add', style: TextStyle(
-                            fontSize: 18, 
-                            fontWeight: FontWeight.bold, 
-                            color: Colors.black,
-                            decoration: TextDecoration.underline,
-                            fontFamily: 'Poppins',
-                          )),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3CD),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFFFECB3)),
+                            ),
+                            child: const Text('+ Add', style: TextStyle(
+                              fontSize: 15, 
+                              fontWeight: FontWeight.bold, 
+                              color: Color(0xFF856404),
+                              fontFamily: 'Poppins',
+                            )),
+                          ),
                         ),
                       ],
                     ),
                     
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 20),
                     
                     Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: _tags.map((tag) => _buildChip(tag)).toList(),
                     ),
                     
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 35),
                     
                     SizedBox(
                       width: double.infinity,
-                      height: 54,
+                      height: 52,
                       child: ElevatedButton(
                         onPressed: _saving ? null : _save,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFD7B41A),
-                          foregroundColor: const Color(0xFF272000),
+                          foregroundColor: const Color(0xFF212529),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         ),
                         child: _saving 
-                          ? const CircularProgressIndicator(color: Color(0xFF272000)) 
-                          : const Text('Update', 
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, fontFamily: 'Poppins')),
+                          ? const CircularProgressIndicator(color: Color(0xFF212529)) 
+                          : const Text('Update Keywords', 
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 30),
                   ],
                 ),
               ),
@@ -211,19 +264,20 @@ class _KeywordScreenState extends State<KeywordScreen> {
 
   Widget _buildChip(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFCBCBCB),
-        borderRadius: BorderRadius.circular(4),
+        color: const Color(0xFFFFF3CD),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFFECB3), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(text, style: const TextStyle(color: Color(0xFF232323), fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w500)),
-          const SizedBox(width: 8),
+          Text(text, style: const TextStyle(color: Color(0xFF856404), fontSize: 14, fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+          const SizedBox(width: 6),
           InkWell(
             onTap: () => _removeTag(text),
-            child: const Text('X', style: TextStyle(color: Color(0xFF232323), fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Poppins')),
+            child: const Icon(Icons.cancel, size: 16, color: Color(0xFF856404)),
           ),
         ],
       ),

@@ -358,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
       items: const [
         PopupMenuItem(value: 'International', child: Text('International', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
         PopupMenuItem(value: 'Country', child: Text('Country', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
-        PopupMenuItem(value: 'Location', child: Text('Current Location', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
+        PopupMenuItem(value: 'Location', child: Text('Choose Area', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600))),
       ],
     ).then((value) async {
       if (value == 'International') {
@@ -383,10 +383,351 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_search.text.isNotEmpty) _doSearch(_search.text);
         }
       } else if (value == 'Location') {
-        _userHasCustomScope = true;
-        _fetchCurrentLocation();
+        _showChooseAreaPicker();
       }
     });
+  }
+
+  Future<List<String>> _fetchCityAreas(String city) async {
+    final areas = <String>{};
+    try {
+      final data = await widget.api.get('check-contact', {
+        'type': 'search',
+        'query': '',
+        'location': city,
+      });
+
+      if (data is List) {
+        for (var item in data) {
+          if (item is Map && item['location1'] != null) {
+            final loc = item['location1'].toString().trim();
+            if (loc.isNotEmpty) {
+              final areaName = loc.split(',').first.trim();
+              if (areaName.isNotEmpty && areaName.toLowerCase() != city.toLowerCase()) {
+                areas.add(areaName);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching city areas: $e");
+    }
+    return areas.toList();
+  }
+
+  Future<Map<String, dynamic>> _fetchGpsAndDatabaseAreas() async {
+    final areas = <String>{};
+    String currentCity = "Current Location";
+    String currentArea = "";
+
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.whileInUse || permission == LocationPermission.always) {
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        
+        if (!kIsWeb) {
+          List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+          for (var p in placemarks) {
+            if (p.subLocality != null && p.subLocality!.trim().isNotEmpty) {
+              areas.add(p.subLocality!.trim());
+              currentArea = p.subLocality!.trim();
+            }
+            if (p.thoroughfare != null && p.thoroughfare!.trim().isNotEmpty) {
+              areas.add(p.thoroughfare!.trim());
+            }
+            if (p.locality != null && p.locality!.trim().isNotEmpty) {
+              currentCity = p.locality!.trim();
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("GPS Geocoding error: $e");
+    }
+
+    if ((currentCity == "Current Location" || currentCity.isEmpty) && _formattedScopeLabel.isNotEmpty) {
+      currentCity = _formattedScopeLabel;
+    }
+
+    // Fetch registered areas from API for this city
+    final dbAreas = await _fetchCityAreas(currentCity);
+    areas.addAll(dbAreas);
+
+    final contactAreas = _results
+        .map((c) => c.location1?.split(',').first.trim())
+        .whereType<String>()
+        .where((a) => a.isNotEmpty)
+        .toList();
+    areas.addAll(contactAreas);
+
+    return {
+      'city': currentCity,
+      'currentArea': currentArea,
+      'areas': areas.where((a) => a.trim().isNotEmpty && a.toLowerCase() != currentCity.toLowerCase()).toList(),
+    };
+  }
+
+  Future<String?> _validateGooglePlace(String query, String city) async {
+    if (query.trim().length < 2) return null;
+    try {
+      String cleanCity = city.trim();
+      if (cleanCity == 'Current Location' || cleanCity.startsWith('Location(')) {
+        cleanCity = widget.session.place1 ?? '';
+      }
+
+      final searchAddress = cleanCity.isNotEmpty && !query.toLowerCase().contains(cleanCity.toLowerCase())
+          ? "${query.trim()}, $cleanCity"
+          : query.trim();
+
+      List<Location> locations = await locationFromAddress(searchAddress);
+      if (locations.isNotEmpty) {
+        final loc = locations.first;
+        List<Placemark> placemarks = await placemarkFromCoordinates(loc.latitude, loc.longitude);
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          final placemarkCity = (p.locality ?? p.subAdministrativeArea ?? '').trim().toLowerCase();
+          final targetCity = cleanCity.trim().toLowerCase();
+
+          // STRICT CITY BOUNDARY ENFORCEMENT:
+          // If the place is located outside the active live city, reject it!
+          if (targetCity.isNotEmpty && placemarkCity.isNotEmpty) {
+            if (!placemarkCity.contains(targetCity) && !targetCity.contains(placemarkCity)) {
+              debugPrint("Disallowing place '$query' in '$placemarkCity' outside active city '$cleanCity'");
+              return null;
+            }
+          }
+
+          final subLoc = p.subLocality?.trim();
+          final road = p.thoroughfare?.trim();
+          final name = p.name?.trim();
+
+          if (subLoc != null && subLoc.isNotEmpty) return subLoc;
+          if (road != null && road.isNotEmpty) return road;
+          if (name != null && name.isNotEmpty) return name;
+        }
+        return query.trim();
+      }
+    } catch (e) {
+      debugPrint("Geocoding validation error: $e");
+    }
+    return null;
+  }
+
+  void _showChooseAreaPicker() {
+    final initialCity = _formattedScopeLabel.isNotEmpty ? _formattedScopeLabel : (widget.session.place1 ?? 'Current Location');
+    final areaFuture = _fetchGpsAndDatabaseAreas();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (bContext) {
+        String filter = '';
+        return StatefulBuilder(
+          builder: (stContext, setSt) {
+            return FutureBuilder<Map<String, dynamic>>(
+              future: areaFuture,
+              builder: (fContext, snapshot) {
+                final isLoading = snapshot.connectionState == ConnectionState.waiting;
+                final locationData = snapshot.data ?? {};
+                final currentCity = (locationData['city'] as String?) ?? initialCity;
+                final allAreas = (locationData['areas'] as List<String>?) ?? <String>[];
+
+                final filteredAreas = allAreas
+                    .where((a) => a.toLowerCase().contains(filter.toLowerCase()))
+                    .toList();
+
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: 20,
+                    right: 20,
+                    top: 20,
+                    bottom: MediaQuery.of(stContext).viewInsets.bottom + 20,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on, color: Color(0xFF6C757D)),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Choose Area (${currentCity.isNotEmpty ? currentCity : "GPS"})',
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF212529)),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.grey),
+                            onPressed: () => Navigator.pop(bContext),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        onChanged: (v) => setSt(() => filter = v),
+                        decoration: InputDecoration(
+                          hintText: 'Search area name...',
+                          prefixIcon: const Icon(Icons.search, color: Color(0xFF6C757D)),
+                          filled: true,
+                          fillColor: const Color(0xFFF8F9FA),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE9ECEF),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.my_location, color: Color(0xFF6C757D), size: 20),
+                        ),
+                        title: const Text('Auto-detect GPS Location', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, fontSize: 14)),
+                        subtitle: Text(currentCity, style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey)),
+                        onTap: () {
+                          Navigator.pop(bContext);
+                          _userHasCustomScope = true;
+                          _fetchCurrentLocation();
+                        },
+                      ),
+                      
+                      const Divider(height: 24),
+                      
+                      Text(
+                        'GPS DETECTED & REGISTERED AREAS',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF6C757D), fontFamily: 'Poppins', letterSpacing: 0.5),
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      SizedBox(
+                        height: 220,
+                        child: isLoading
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(color: Color(0xFF6C757D), strokeWidth: 2.5),
+                                    ),
+                                    SizedBox(height: 12),
+                                    Text(
+                                      'Detecting GPS & Registered Areas...',
+                                      style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF6C757D)),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : filteredAreas.isEmpty && filter.isNotEmpty
+                                ? FutureBuilder<String?>(
+                                    future: _validateGooglePlace(filter, currentCity),
+                                    builder: (vContext, vSnapshot) {
+                                      if (vSnapshot.connectionState == ConnectionState.waiting) {
+                                        return Center(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: const [
+                                              SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Color(0xFF6C757D), strokeWidth: 2)),
+                                              SizedBox(width: 10),
+                                              Text('Validating place with Google Maps...', style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF6C757D))),
+                                            ],
+                                          ),
+                                        );
+                                      }
+
+                                      final validArea = vSnapshot.data;
+                                      if (validArea != null && validArea.isNotEmpty) {
+                                        return ListTile(
+                                          leading: const Icon(Icons.location_on, color: Color(0xFF6C757D)),
+                                          title: Text(validArea, style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Color(0xFF212529))),
+                                          subtitle: Text('Google Maps Verified Location in $currentCity', style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Color(0xFF6C757D))),
+                                          trailing: const Icon(Icons.check_circle, color: Color(0xFF6C757D), size: 20),
+                                          onTap: () {
+                                            Navigator.pop(bContext);
+                                            setState(() {
+                                              _userHasCustomScope = true;
+                                              _scopeLabel = 'Location($validArea)';
+                                              _selectedLocation = validArea;
+                                            });
+                                            if (_search.text.isNotEmpty) _doSearch(_search.text);
+                                          },
+                                        );
+                                      }
+
+                                      return ListTile(
+                                        leading: const Icon(Icons.location_off_outlined, color: Colors.redAccent),
+                                        title: const Text('Place not found', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.bold, color: Colors.redAccent)),
+                                        subtitle: Text(
+                                          currentCity.isNotEmpty && currentCity != 'Current Location'
+                                              ? '"$filter" is not located in $currentCity'
+                                              : '"$filter" is not a recognized location in Google Maps',
+                                          style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey),
+                                        ),
+                                        onTap: null,
+                                      );
+                                    },
+                                  )
+                                : filteredAreas.isEmpty
+                                    ? const Center(child: Text('No registered areas found', style: TextStyle(fontFamily: 'Poppins', color: Colors.grey)))
+                                    : ListView.builder(
+                                        itemCount: filteredAreas.length,
+                                        itemBuilder: (c, i) {
+                                          final area = filteredAreas[i];
+                                          final isSelected = _formattedScopeLabel.toLowerCase() == area.toLowerCase();
+
+                                          return ListTile(
+                                            dense: true,
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                                            leading: Icon(
+                                              Icons.place,
+                                              color: isSelected ? const Color(0xFF6C757D) : Colors.grey.shade400,
+                                              size: 20,
+                                            ),
+                                            title: Text(
+                                              area,
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                                color: isSelected ? const Color(0xFF212529) : const Color(0xFF495057),
+                                              ),
+                                            ),
+                                            trailing: isSelected ? const Icon(Icons.check, color: Color(0xFF6C757D), size: 18) : null,
+                                            onTap: () {
+                                              Navigator.pop(bContext);
+                                              setState(() {
+                                                _userHasCustomScope = true;
+                                                _scopeLabel = 'Location($area)';
+                                                _selectedLocation = area;
+                                              });
+                                              if (_search.text.isNotEmpty) _doSearch(_search.text);
+                                            },
+                                          );
+                                        },
+                                      ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
   }
 
   String get _formattedScopeLabel {

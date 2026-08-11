@@ -1048,23 +1048,9 @@ class _MyContactsScreenState extends State<MyContactsScreen> {
                       InkWell(
                         onTap: _showAddDialog,
                         borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD7B41A),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFD7B41A).withValues(alpha: 0.3),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: const Text(
-                            '+ Add',
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins'),
-                          ),
+                        child: const Text(
+                          '+ Add',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
                         ),
                       ),
                     ],

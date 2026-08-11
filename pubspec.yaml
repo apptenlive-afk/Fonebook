@@ -37,9 +37,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "ic_launcher"
   ios: true
-  image_path: "assets/images/phonebooklogo.png"
+  image_path: "assets/images/logo.png"
   adaptive_icon_background: "#F6D207"
-  adaptive_icon_foreground: "assets/images/phonebooklogo.png"
+  adaptive_icon_foreground: "assets/images/logo.png"
   min_sdk_android: 21
 
 flutter:

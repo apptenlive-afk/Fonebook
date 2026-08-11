@@ -83,8 +83,11 @@ class _AppShellState extends State<AppShell> {
           child: Theme(
             data: Theme.of(context).copyWith(
               canvasColor: const Color(0xFF212529),
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
             ),
             child: BottomNavigationBar(
+              elevation: 0,
               currentIndex: _index,
               onTap: (i) {
                 if (_index == i) {

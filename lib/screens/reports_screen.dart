@@ -112,18 +112,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3CD),
+                      color: const Color(0xFF6C757D),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFFFECB3)),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                         value: _range,
                         isDense: true,
-                        dropdownColor: Colors.white,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins'),
+                        dropdownColor: const Color(0xFF6C757D),
+                        iconEnabledColor: Colors.white,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Poppins'),
                         items: ['All', 'Today', 'Yesterday', 'Last 7 days', 'Last Week', 'Last Month']
-                            .map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: Colors.white)))).toList(),
                         onChanged: (v) {
                           setState(() {
                             _range = v!;

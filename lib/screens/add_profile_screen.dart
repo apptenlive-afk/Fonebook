@@ -484,11 +484,11 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: const BoxDecoration(
-                                color: Color(0xFFD7B41A),
+                                color: Color(0xFF6C757D),
                                 shape: BoxShape.circle,
                                 boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.black, size: 22),
+                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 22),
                             ),
                           ),
                         ],
@@ -511,7 +511,7 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                           InkWell(
                             onTap: _getAddress,
                             child: const Text('Get Address from GPS', 
-                                           style: TextStyle(color: Color(0xFFD7B41A), fontWeight: FontWeight.bold, fontSize: 16, fontFamily: 'Poppins')),
+                                           style: TextStyle(color: Color(0xFF6C757D), fontWeight: FontWeight.bold, fontSize: 16, fontFamily: 'Poppins')),
                           ),
                           InkWell(
                             onTap: () => setState(() => _locationController.clear()),
@@ -583,7 +583,7 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                           ),
                         );
                       }),
-                      TextButton(onPressed: () => setState(() => _serviceControllers.add(TextEditingController())), child: const Text('+Add More', style: TextStyle(color: Color(0xFFD7B41A), fontFamily: 'Poppins'))),
+                      TextButton(onPressed: () => setState(() => _serviceControllers.add(TextEditingController())), child: const Text('+Add More', style: TextStyle(color: Color(0xFF6C757D), fontWeight: FontWeight.bold, fontFamily: 'Poppins'))),
 
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
@@ -611,7 +611,7 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                           ),
                         );
                       }).toList(),
-                      TextButton(onPressed: () => setState(() => _contactControllers.add({'name': TextEditingController(), 'val': TextEditingController()})), child: const Text('+Add More Contact', style: TextStyle(color: Color(0xFFD7B41A), fontFamily: 'Poppins'))),
+                      TextButton(onPressed: () => setState(() => _contactControllers.add({'name': TextEditingController(), 'val': TextEditingController()})), child: const Text('+Add More Contact', style: TextStyle(color: Color(0xFF6C757D), fontWeight: FontWeight.bold, fontFamily: 'Poppins'))),
                     ],
 
                     const SizedBox(height: 25),
@@ -623,8 +623,8 @@ class _AddProfileScreenState extends State<AddProfileScreen> {
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _save,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFD7B41A),
-                            foregroundColor: const Color(0xFF272000),
+                            backgroundColor: const Color(0xFF6C757D),
+                            foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                           ),

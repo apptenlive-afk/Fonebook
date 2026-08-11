@@ -175,10 +175,10 @@ class _PromoteScreenState extends State<PromoteScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFFF3CD),
+                              color: const Color(0xFF6C757D),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.campaign, color: Color(0xFF856404), size: 26),
+                            child: const Icon(Icons.campaign, color: Colors.white, size: 26),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -207,19 +207,18 @@ class _PromoteScreenState extends State<PromoteScreen> {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3CD),
+                        color: const Color(0xFF6C757D),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0xFFFFECB3)),
                       ),
                       child: Column(
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.account_balance_wallet, color: Color(0xFF856404), size: 20),
+                              const Icon(Icons.account_balance_wallet, color: Colors.white, size: 20),
                               const SizedBox(width: 8),
-                              const Text('Balance for Promotion', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                              const Text('Balance for Promotion', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white, fontFamily: 'Poppins')),
                               const Spacer(),
-                              Text('\$ ${_formatBalance(_balance)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins')),
+                              Text('\$ ${_formatBalance(_balance)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, fontFamily: 'Poppins')),
                             ],
                           ),
                           const SizedBox(height: 10),

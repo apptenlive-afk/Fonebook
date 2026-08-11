@@ -121,10 +121,10 @@ class SettingsScreen extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF3CD),
+            color: const Color(0xFF6C757D),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFF856404), size: 20),
+          child: Icon(icon, color: Colors.white, size: 20),
         ),
         title: Text(
           title,

@@ -128,17 +128,9 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                     InkWell(
                       onTap: _addContact,
                       borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF3CD),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFFECB3)),
-                        ),
-                        child: const Text(
-                          '+ Add Profile', 
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
-                        ),
+                      child: const Text(
+                        '+ Add Profile', 
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF6C757D), fontFamily: 'Poppins'),
                       ),
                     ),
                 ],
@@ -146,7 +138,7 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
             ),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFD7B41A)))
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF6C757D)))
                   : _profiles.isEmpty
                       ? Center(
                           child: Column(
@@ -170,10 +162,10 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                                 height: 48,
                                 child: ElevatedButton.icon(
                                   onPressed: _addContact,
-                                  icon: const Icon(Icons.add, color: Color(0xFF212529)),
-                                  label: const Text('Add Business Profile', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF212529))),
+                                  icon: const Icon(Icons.add, color: Colors.white),
+                                  label: const Text('Add Business Profile', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Colors.white)),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFD7B41A),
+                                    backgroundColor: const Color(0xFF6C757D),
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   ),
@@ -283,68 +275,19 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
             ),
             const SizedBox(width: 8),
 
-            // Status & Action Badge
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            // Action Text (No Container Card)
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.mode == 'profile')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: p.publish == 'yes' ? const Color(0xFFE8F5E9) : const Color(0xFFFFF5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      p.publish == 'yes' ? 'Published' : 'Verify to publish',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        color: p.publish == 'yes' ? const Color(0xFF0F8F51) : Colors.red,
-                      ),
-                    ),
-                  )
-                else if (widget.mode == 'verification')
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: p.verified == 1 ? const Color(0xFFE8F5E9) : const Color(0xFFFFF5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      p.verified == 1 ? 'Verified' : 'Not Verified',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
-                        color: p.verified == 1 ? const Color(0xFF0F8F51) : Colors.red,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3CD),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFFFECB3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        widget.mode == 'traffic' ? Icons.visibility : Icons.edit,
-                        size: 14,
-                        color: const Color(0xFF856404),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.mode == 'traffic' ? 'View' : 'Edit',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF856404), fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
-                      ),
-                    ],
-                  ),
+                Icon(
+                  widget.mode == 'traffic' ? Icons.visibility : Icons.edit,
+                  size: 14,
+                  color: const Color(0xFF6C757D),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  widget.mode == 'traffic' ? 'View' : 'Edit',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF6C757D), fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
                 ),
               ],
             ),

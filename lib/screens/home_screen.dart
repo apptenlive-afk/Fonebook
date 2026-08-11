@@ -263,12 +263,10 @@ class _HomeScreenState extends State<HomeScreen> {
               .where((e) {
                 final cleanPhone = e.phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '');
                 final serviceMatch = e.service.toLowerCase().contains(query);
-                final keywordMatch = (e.keyword ?? '').toLowerCase().contains(query);
-                final tagsMatch = (e.tags ?? '').toLowerCase().contains(query);
                 final phoneMatch = cleanQ.isNotEmpty && cleanPhone.contains(cleanQ);
 
-                // For global contacts table: ONLY allow profession (service), keywords, tags, or phone (NO name search allowed in contacts table)
-                final textMatch = serviceMatch || keywordMatch || tagsMatch || phoneMatch;
+                // For global contacts table: ONLY allow profession (service) field or phone match
+                final textMatch = serviceMatch || phoneMatch;
                 if (!textMatch) return false;
 
                 final who = (e.whoContact ?? 'international').toLowerCase();
@@ -447,159 +445,222 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Stack(
           children: [
-            // Home View when NOT searching
-            if (!_isSearching) ...[
-              Positioned(
-                top: 15,
-                right: 15,
-                child: HeaderMenu(api: widget.api, store: widget.store, session: widget.session, onUpdate: _loadFavs),
+            // Top Right Header Menu
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 250),
+              top: 15,
+              right: 15,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isSearching ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: _isSearching,
+                  child: HeaderMenu(api: widget.api, store: widget.store, session: widget.session, onUpdate: _loadFavs),
+                ),
               ),
-              Center(
-                child: SingleChildScrollView(
+            ),
+
+            // Center Logo & Title when NOT searching
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 250),
+              top: _isSearching ? 0 : (screenHeight * 0.22),
+              left: 0,
+              right: 0,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isSearching ? 0.0 : 1.0,
+                child: IgnorePointer(
+                  ignoring: _isSearching,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset('assets/images/phonebooklogo.png', width: 140, height: 60, fit: BoxFit.contain),
+                      Image.asset('assets/images/logo.png', width: 72, height: 72, fit: BoxFit.contain),
                       const SizedBox(height: 8),
                       const Text(
                         'Fone Book',
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Color(0xFF202124), fontFamily: 'Poppins'),
                       ),
-                      const SizedBox(height: 24),
-                      _buildSearchCard(),
-                      const SizedBox(height: 10),
-                      _buildScopePill(),
                     ],
                   ),
                 ),
               ),
-            ],
+            ),
 
-            // Active Search View when searching
-            if (_isSearching)
-              Column(
+            // Search Results List (positioned below top search bar & scope pill)
+            Positioned.fill(
+              top: 100,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: _isSearching ? 1.0 : 0.0,
+                child: IgnorePointer(
+                  ignoring: !_isSearching,
+                  child: _buildSearchResultsList(),
+                ),
+              ),
+            ),
+
+            // Persistent Single Search Bar & Scope Pill (Animates position smoothly)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
+              top: _isSearching ? 12 : (screenHeight * 0.36),
+              left: 0,
+              right: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 12),
                   _buildSearchCard(),
                   const SizedBox(height: 6),
                   _buildScopePill(),
-                  Expanded(
-                    child: _loading
-                        ? const Center(child: CircularProgressIndicator(color: Color(0xFFD7B41A)))
-                        : _hasSearched && _results.isEmpty && _search.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: 60),
-                                child: Column(
-                                  children: [
-                                    Icon(Icons.search_off, size: 52, color: Colors.grey.shade400),
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                      'No contacts found', 
-                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF202124), fontFamily: 'Poppins')),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Try searching for another name, title, or phone number',
-                                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontFamily: 'Poppins')),
-                                  ],
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.only(top: 6, bottom: 20),
-                                itemCount: _results.length,
-                                itemBuilder: (c, i) {
-                                  final contact = _results[i];
-                                  final isFav = _favs.any((e) => e.phone == contact.phone);
-                                  final isMyContact = i < _localMatchCount;
-
-                                  return ContactCard(
-                                    contact: contact,
-                                    isFavourite: isFav,
-                                    isMyContact: isMyContact,
-                                    isFirstThree: i < 3,
-                                    onCall: isMyContact ? null : () => widget.store.addToHistory(contact),
-                                    onTap: isMyContact ? () {} : () {
-                                      widget.onSearchModeChanged(false);
-                                      Navigator.push(context, MaterialPageRoute(builder: (_) => DetailsScreen(contact: contact))).then((_) {
-                                        _loadFavs();
-                                        if (_isSearching) widget.onSearchModeChanged(true);
-                                      });
-                                    },
-                                  );
-                                },
-                              ),
-                  ),
                 ],
               ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildSearchResultsList() {
+    return _loading
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFF6C757D)))
+        : _hasSearched && _results.isEmpty && _search.text.isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 60),
+                child: Column(
+                  children: [
+                    Icon(Icons.search_off, size: 52, color: Colors.grey.shade400),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'No contacts found', 
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF202124), fontFamily: 'Poppins')),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Try searching for another name, title, or phone number',
+                      style: TextStyle(fontSize: 13, color: Colors.grey.shade600, fontFamily: 'Poppins')),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.only(top: 6, bottom: 20),
+                itemCount: _results.length,
+                itemBuilder: (c, i) {
+                  final contact = _results[i];
+                  final isFav = _favs.any((e) => e.phone == contact.phone);
+                  final isMyContact = i < _localMatchCount;
+
+                  return ContactCard(
+                    contact: contact,
+                    isFavourite: isFav,
+                    isMyContact: isMyContact,
+                    isFirstThree: i < 3,
+                    onCall: isMyContact ? null : () => widget.store.addToHistory(contact),
+                    onTap: isMyContact ? () {} : () {
+                      widget.onSearchModeChanged(false);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => DetailsScreen(contact: contact))).then((_) {
+                        _loadFavs();
+                        if (_isSearching) widget.onSearchModeChanged(true);
+                      });
+                    },
+                  );
+                },
+              );
+  }
+
   Widget _buildSearchCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Card(
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(26),
-          side: BorderSide(color: Colors.grey.shade200, width: 1),
-        ),
-        child: Container(
-          height: 52,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            children: [
-              if (_isSearching)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFF5F6368)),
-                  onPressed: () {
-                    setState(() {
-                      _isSearching = false;
-                      _search.clear();
-                      _results.clear();
-                      _hasSearched = false;
-                      _focus.unfocus();
-                      widget.onSearchModeChanged(false);
-                    });
-                  },
-                )
-              else
-                const Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Icon(Icons.search, color: Color(0xFF5F6368)),
-                ),
-              Expanded(
-                child: TextField(
-                  controller: _search,
-                  focusNode: _focus,
-                  onSubmitted: _doSearch,
-                  onChanged: (v) {
-                    if (v.isEmpty) {
+      child: InkWell(
+        onTap: () {
+          if (!_isSearching) {
+            setState(() {
+              _isSearching = true;
+              widget.onSearchModeChanged(true);
+            });
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _focus.requestFocus();
+            });
+          }
+        },
+        child: Card(
+          elevation: 3,
+          shadowColor: Colors.black.withValues(alpha: 0.1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(26),
+            side: BorderSide(color: Colors.grey.shade200, width: 1),
+          ),
+          child: Container(
+            height: 52,
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                if (_isSearching)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Color(0xFF5F6368)),
+                    onPressed: () {
                       setState(() {
                         _isSearching = false;
+                        _search.clear();
                         _results.clear();
                         _hasSearched = false;
                         _focus.unfocus();
                         widget.onSearchModeChanged(false);
                       });
-                    }
-                  },
-                  decoration: const InputDecoration(
-                    hintText: 'Search name or Keyword...',
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    hintStyle: TextStyle(color: Color(0xFF5F6368), fontFamily: 'Poppins'),
+                    },
+                  )
+                else
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Icon(Icons.search, color: Color(0xFF5F6368)),
                   ),
-                  style: const TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Color(0xFF202124)),
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    focusNode: _focus,
+                    onTap: () {
+                      if (!_isSearching) {
+                        setState(() {
+                          _isSearching = true;
+                          widget.onSearchModeChanged(true);
+                        });
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) _focus.requestFocus();
+                        });
+                      }
+                    },
+                    onSubmitted: _doSearch,
+                    onChanged: (v) {
+                      if (v.isNotEmpty && !_isSearching) {
+                        setState(() {
+                          _isSearching = true;
+                          widget.onSearchModeChanged(true);
+                        });
+                      } else if (v.isEmpty && _isSearching) {
+                        setState(() {
+                          _isSearching = false;
+                          _results.clear();
+                          _hasSearched = false;
+                          _focus.unfocus();
+                          widget.onSearchModeChanged(false);
+                        });
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Search name or Keyword...',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      hintStyle: TextStyle(color: Color(0xFF5F6368), fontFamily: 'Poppins'),
+                    ),
+                    style: const TextStyle(fontSize: 16, fontFamily: 'Poppins', color: Color(0xFF202124)),
+                  ),
                 ),
-              ),
               if (_search.text.isNotEmpty)
                 IconButton(
                   icon: const Icon(Icons.close, color: Color(0xFF5F6368)),
@@ -618,6 +679,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

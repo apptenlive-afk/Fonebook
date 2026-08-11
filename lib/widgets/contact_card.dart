@@ -156,24 +156,21 @@ class ContactCard extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3CD),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFFFECB3), width: 0.8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.person, size: 10, color: Color(0xFF856404)),
-                          SizedBox(width: 3),
-                          Text(
-                            'My Contact',
-                            style: TextStyle(fontSize: 10, color: Color(0xFF856404), fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.person, size: 12, color: Color(0xFF6C757D)),
+                        SizedBox(width: 3),
+                        Text(
+                          'My Contact',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6C757D),
+                            fontFamily: 'Poppins',
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ] else ...[
                     if (subtitle.isNotEmpty) ...[

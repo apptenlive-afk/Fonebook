@@ -811,7 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Center Logo & Title when NOT searching
             AnimatedPositioned(
               duration: const Duration(milliseconds: 250),
-              top: _isSearching ? 0 : (screenHeight * 0.17),
+              top: _isSearching ? 0 : (screenHeight * 0.21),
               left: 0,
               right: 0,
               child: AnimatedOpacity(
@@ -823,7 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Image.asset('assets/images/logo1.jpg', width: 85, height: 85, fit: BoxFit.contain),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 9),
                       const Text(
                         'Fone Book',
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Color(0xFF202124), fontFamily: 'Poppins'),

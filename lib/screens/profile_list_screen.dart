@@ -198,8 +198,6 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
   }
 
   Widget _buildItem(DirectoryContact p) {
-    final firstLetter = p.name.trim().isNotEmpty ? p.name.trim()[0].toUpperCase() : '?';
-
     return InkWell(
       onTap: () => _onItemClick(p),
       borderRadius: BorderRadius.circular(16),
@@ -223,12 +221,11 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
           children: [
             // Profile Image / Initial Avatar
             Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFFF3CD),
-                border: Border.all(color: const Color(0xFFFFECB3), width: 1),
+                color: Color(0xFF4C5B8F),
               ),
               child: ClipOval(
                 child: p.imageUrl.isNotEmpty
@@ -236,19 +233,9 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                         placeholder: 'assets/images/user.png',
                         image: p.imageUrl,
                         fit: BoxFit.cover,
-                        imageErrorBuilder: (context, error, stackTrace) => Center(
-                          child: Text(
-                            firstLetter,
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
-                          ),
-                        ),
+                        imageErrorBuilder: (context, error, stackTrace) => Image.asset('assets/images/user.png', fit: BoxFit.cover),
                       )
-                    : Center(
-                        child: Text(
-                          firstLetter,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
-                        ),
-                      ),
+                    : Image.asset('assets/images/user.png', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 12),
@@ -278,14 +265,14 @@ class _ProfileListScreenState extends State<ProfileListScreen> {
                     const SizedBox(height: 3),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 13, color: Color(0xFF6C757D)),
+                        const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF212529)),
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
                             p.location1!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF495057), fontFamily: 'Poppins'),
+                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF212529), fontFamily: 'Poppins'),
                           ),
                         ),
                       ],

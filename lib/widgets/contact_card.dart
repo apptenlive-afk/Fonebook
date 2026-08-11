@@ -53,7 +53,6 @@ class ContactCard extends StatelessWidget {
     
     final timeAgo = showTime ? _getTimeAgo(contact.timestamp) : "";
     final subtitle = showTime && timeAgo.isNotEmpty ? "${contact.service} • $timeAgo" : contact.service;
-    final firstLetter = contact.name.trim().isNotEmpty ? contact.name.trim()[0].toUpperCase() : '?';
 
     return InkWell(
       onTap: onTap,
@@ -85,12 +84,11 @@ class ContactCard extends StatelessWidget {
               clipBehavior: Clip.none,
               children: [
                 Container(
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
+                  width: 48,
+                  height: 48,
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFFFFF3CD),
-                    border: Border.all(color: const Color(0xFFFFECB3), width: 1),
+                    color: Color(0xFF4C5B8F),
                   ),
                   child: ClipOval(
                     child: contact.imageUrl.isNotEmpty
@@ -98,19 +96,9 @@ class ContactCard extends StatelessWidget {
                             placeholder: 'assets/images/user.png',
                             image: contact.imageUrl,
                             fit: BoxFit.cover,
-                            imageErrorBuilder: (c, e, s) => Center(
-                              child: Text(
-                                firstLetter,
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
-                              ),
-                            ),
+                            imageErrorBuilder: (c, e, s) => Image.asset('assets/images/user.png', fit: BoxFit.cover),
                           )
-                        : Center(
-                            child: Text(
-                              firstLetter,
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
-                            ),
-                          ),
+                        : Image.asset('assets/images/user.png', fit: BoxFit.cover),
                   ),
                 ),
                 if (isAd)
@@ -201,14 +189,14 @@ class ContactCard extends StatelessWidget {
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          const Icon(Icons.location_on, size: 13, color: Color(0xFF6C757D)),
+                          const Icon(Icons.location_on_outlined, size: 14, color: Color(0xFF212529)),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               contact.location1!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF495057), fontWeight: FontWeight.w500, fontFamily: 'Poppins'),
+                              style: const TextStyle(fontSize: 12.5, color: Color(0xFF212529), fontWeight: FontWeight.w600, fontFamily: 'Poppins'),
                             ),
                           ),
                         ],
@@ -235,14 +223,9 @@ class ContactCard extends StatelessWidget {
                 launchUrl(Uri.parse('tel:${contact.phone}'));
               },
               borderRadius: BorderRadius.circular(20),
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5E9),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.phone, color: Colors.green, size: 18),
+              child: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.phone, color: Colors.black, size: 22),
               ),
             ),
           ],

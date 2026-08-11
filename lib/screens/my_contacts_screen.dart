@@ -1181,8 +1181,6 @@ class _MyContactsScreenState extends State<MyContactsScreen> {
   }
 
   Widget _buildItem(MyContactItem item) {
-    final firstLetter = item.name.isNotEmpty ? item.name[0].toUpperCase() : '?';
-
     return InkWell(
       onTap: () => _showEditDialog(item),
       child: Container(
@@ -1193,7 +1191,7 @@ class _MyContactsScreenState extends State<MyContactsScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -1203,18 +1201,14 @@ class _MyContactsScreenState extends State<MyContactsScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFFF3CD),
-                border: Border.all(color: const Color(0xFFFFECB3), width: 1),
+                color: Color(0xFF4C5B8F),
               ),
-              child: Center(
-                child: Text(
-                  firstLetter,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF856404), fontFamily: 'Poppins'),
-                ),
+              child: ClipOval(
+                child: Image.asset('assets/images/user.png', fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 12),
@@ -1260,13 +1254,9 @@ class _MyContactsScreenState extends State<MyContactsScreen> {
             InkWell(
               onTap: () => _callPhone(item.phone),
               borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F5E9),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.phone, color: Colors.green, size: 18),
+              child: const Padding(
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.phone, color: Colors.black, size: 22),
               ),
             ),
           ],

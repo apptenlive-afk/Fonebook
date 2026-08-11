@@ -17,7 +17,6 @@ class _AppShellState extends State<AppShell> {
   final api = ApiClient();
   final store = SessionStore();
   UserSession _session = const UserSession();
-  bool _hideFooter = false;
 
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
@@ -58,7 +57,7 @@ class _AppShellState extends State<AppShell> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final bool shouldPop = await _onWillPop();
-        if (shouldPop && mounted) {
+        if (shouldPop && context.mounted) {
           Navigator.of(context).pop(result);
         }
       },
@@ -70,7 +69,7 @@ class _AppShellState extends State<AppShell> {
               api: api,
               store: store,
               session: _session,
-              onSearchModeChanged: (searching) => setState(() => _hideFooter = false),
+              onSearchModeChanged: (searching) {},
             )),
             _buildNavigator(1, RecentScreen(api: api, store: store, session: _session)),
             _buildNavigator(2, FavouritesScreen(api: api, store: store, session: _session)),
@@ -108,9 +107,9 @@ class _AppShellState extends State<AppShell> {
                       color: _index == 0 ? const Color(0xFF343A40) : Colors.transparent,
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Image.asset('assets/images/search.png', width: 20, height: 20, color: _index == 0 ? const Color(0xFFF6D207) : const Color(0xFFA0A0A0)),
+                    child: Image.asset('assets/images/group.png', width: 20, height: 20, color: _index == 0 ? const Color(0xFFF6D207) : const Color(0xFFA0A0A0)),
                   ),
-                  label: 'Search',
+                  label: 'Contacts',
                 ),
                 BottomNavigationBarItem(
                   icon: Container(

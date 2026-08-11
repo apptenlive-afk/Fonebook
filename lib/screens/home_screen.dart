@@ -822,7 +822,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Image.asset('assets/images/logo.png', width: 72, height: 72, fit: BoxFit.contain),
+                      Image.asset('assets/images/logo1.jpg', width: 95, height: 95, fit: BoxFit.contain),
                       const SizedBox(height: 8),
                       const Text(
                         'Fone Book',
